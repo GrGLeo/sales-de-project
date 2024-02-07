@@ -35,7 +35,8 @@ class SaleCreator:
         return {
         fake.uuid4():
             {'user':{
-                'user_name':fake.last_name(),
+                'user_lastname':fake.last_name(),
+                'user_firstname':fake.first_name(),
                 'department':random.randint(1,96),
                 'sexe':random.choice(['m','f']),
                 'birth_date':fake.date_of_birth(minimum_age=18)
