@@ -43,8 +43,9 @@ class SaleCreator:
             },
             'item':{
                 'item_name':(i:=random.choice(list(self.items_prices.keys()))),
-                'price':self.items_prices[i],
-                'price_payed':round(self.items_prices[i] * np.random.uniform(0.95,1),2)
+                'item_id':self.items_prices[i][1],
+                'price':self.items_prices[i][0],
+                'price_payed':round(self.items_prices[i][0] * np.random.uniform(0.95,1),2)
             },
             'taxes':random.choices([20,0], [a:=random.random(),1-a])[0],
             'quantity':random.randint(1,3),
