@@ -1,19 +1,21 @@
-import requests
 import os
-import pandas as pd
-pd.options.mode.copy_on_write = True
 import json
 from datetime import datetime
-
+import requests
+import pandas as pd
 from utils import flat_json
 from utils.big_data import push_to_s3
+pd.options.mode.copy_on_write = True
 
 class Feeder:
     def __init__(self, dt_partition=None, limit=None,):
         self.item_path = os.getenv('JSON_ITEM_PATH')
         self.dt_partition = dt_partition
         self.limit = limit
-        self.df = self.get_days_sales()
+        self.get_days_sales()
+        self.alim_user()
+        self.alim_item()
+        self.alim_sales()
 
     def get_days_sales(self):
         url = os.getenv('API_URL')
@@ -21,20 +23,20 @@ class Feeder:
             'limit' : self.limit,
             'dt_partition' : self.dt_partition
         }
-        response = requests.get(url, params=param)
+        response = requests.get(url, params=param,timeout=60)
         # TODO safeguard in case response != 200
         content = response.json()
         df = flat_json(content)
         # create a saved raw file on s3
         push_to_s3(df, 'raw_data.json','')
         print('Pushed to s3')
-        df = pd.DataFrame(df)
-        return df
+        self.df = pd.DataFrame(df)
 
     def alim_user(self):
         self.df_user = self.df[['user_lastname','user_firstname','department','sexe','birth_date']]
         self.df_user.loc[:,'birth_date'] = pd.to_datetime(self.df_user['birth_date'])
-        self.df_user.loc[:,'age'] = self.df_user['birth_date'].apply(lambda x : datetime.today().year - x.year)
+        self.df_user.loc[:,'age'] = self.df_user['birth_date']\
+            .apply(lambda x : datetime.today().year - x.year)
         self.df_user.loc[:,'user_name'] = self.df['user_firstname'] + ' ' + self.df['user_lastname']
         self.df_user.loc[:,'sexe'] = self.df['sexe'].str.upper()
 
@@ -46,7 +48,7 @@ class Feeder:
             'NB_AGE':'age'
         }
         self.df_user.rename({v:k for k,v in mapper.items()}, axis=1, inplace=True)
-        selection = [k for k in mapper.keys()]
+        selection = list(mapper.keys())
         self.df_user = self.df_user[selection]
         self.df_user.drop_duplicates(['LB_NAME','DT_BIRTH'],inplace=True)
 
@@ -90,7 +92,7 @@ class Feeder:
         }
 
         self.df_sales.rename(mapper, axis=1, inplace=True)
-        selection = [v for v in mapper.values()]
+        selection = list(mapper.values())
         self.df_sales = self.df_sales[selection]
 
     def bq_alim(self):
