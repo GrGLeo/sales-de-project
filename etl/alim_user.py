@@ -18,6 +18,10 @@ class Feeder:
         self.alim_sales()
 
     def get_days_sales(self):
+        '''
+        Make an API call to get raw data sales, transform it into a pandas DataFrame.
+        Save it to an s3 bucket
+        '''
         url = os.getenv('API_URL')
         param = {
             'limit' : self.limit,
@@ -33,6 +37,9 @@ class Feeder:
         self.df = pd.DataFrame(df)
 
     def alim_user(self):
+        '''
+        Retrive user info from the raw data, and calculate columns
+        '''
         self.df_user = self.df[['user_lastname','user_firstname','department','sexe','birth_date']]
         self.df_user.loc[:,'birth_date'] = pd.to_datetime(self.df_user['birth_date'])
         self.df_user.loc[:,'age'] = self.df_user['birth_date']\
@@ -53,10 +60,15 @@ class Feeder:
         self.df_user.drop_duplicates(['LB_NAME','DT_BIRTH'],inplace=True)
 
     def alim_item(self):
+        '''
+        If table is not on redshift, push the json files
+        else, check is there is new value in raw data
+        and write the new value if needed
+        '''
         # TODO check if table exist on AWS
         item_price_path = self.item_path
-        with open(item_price_path,'r') as f:
-            item_price_table = json.load(f)
+        with open(item_price_path,'r',encoding='UTF-8') as file:
+            item_price_table = json.load(file)
 
         item_price_table = {
             'NU_ITEM':[x[1] for x in item_price_table.values()],
@@ -69,6 +81,9 @@ class Feeder:
         # TODO verify new item, write new item
 
     def alim_sales(self):
+        '''
+        Retrive the sales information, from the raw data
+        '''
         self.df_sales = self.df[['uid4','user_lastname','user_firstname','birth_date','item_id',\
             'price_payed','taxes','quantity','date']]
         self.df_sales['user_name'] = self.df['user_firstname'] + ' ' + self.df['user_lastname']
@@ -95,14 +110,17 @@ class Feeder:
         selection = list(mapper.values())
         self.df_sales = self.df_sales[selection]
 
-    def bq_alim(self):
-        pass
+    def redshift_alim(self):
+        '''
+        Feed a table to redshift
+        '''
+        return
 
     def compute(self):
-        self.alim_user()
-        self.alim_item()
-        self.alim_sales()
-        self.bq_alim()
+        '''
+        Feed all three table to the redshit data warehouse
+        '''
+        self.redshift_alim()
 
 
 if '__main__' == __name__:

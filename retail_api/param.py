@@ -24,4 +24,6 @@ items = [
     "Laptop Cooling Pad", "Desk Cable Organizer", "Wireless Charger"
 ]
 
-items_prices = {item: (round(int(random.uniform(20.0, 500.0)))+0.99, i+1) for i,item in enumerate(items)}
+items_prices = {
+    item: (round(int(random.uniform(20.0, 500.0)))+0.99, i+1) for i,item in enumerate(items)
+    }
