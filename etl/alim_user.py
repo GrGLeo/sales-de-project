@@ -5,6 +5,7 @@ import json
 from datetime import datetime
 
 from utils import flat_json
+from utils.big_data import push_to_s3
 
 class Feeder:
     def __init__(self, dt_partition=None, limit=None,):
@@ -23,9 +24,11 @@ class Feeder:
         # TODO safeguard in case response != 200
         content = response.json()
         df = flat_json(content)
+        # create a saved raw file on s3
+        push_to_s3(df, 'raw_data.json','')
+        print('Pushed to s3')
         df = pd.DataFrame(df)
         return df
-        # TODO push zipped json to bucket
 
     def alim_user(self):
         self.df_user = self.df[['user_lastname','user_firstname','department','sexe','birth_date']]
