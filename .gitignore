@@ -1,6 +1,7 @@
 __pycache__/**
+**/*.ipynb_checkpoints/
+*.ipynb
 .env
 *.pyc
 *.json
-*.ipynb
-.python-version
+*.python-version

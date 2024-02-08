@@ -1,6 +1,7 @@
 import requests
 import os
 import pandas as pd
+pd.options.mode.copy_on_write = True
 import json
 from datetime import datetime
 
@@ -50,7 +51,7 @@ class Feeder:
         self.df_user.drop_duplicates(['LB_NAME','DT_BIRTH'],inplace=True)
 
     def alim_item(self):
-        # TODO check if table exist on BQ
+        # TODO check if table exist on AWS
         item_price_path = self.item_path
         with open(item_price_path,'r') as f:
             item_price_table = json.load(f)
@@ -63,7 +64,7 @@ class Feeder:
 
         item_price_table = pd.DataFrame(item_price_table)
 
-        # TODO verify new item, right new item
+        # TODO verify new item, write new item
 
     def alim_sales(self):
         self.df_sales = self.df[['uid4','user_lastname','user_firstname','birth_date','item_id',\
