@@ -14,7 +14,7 @@ class Feeder:
         self.df = self.get_days_sales()
 
     def get_days_sales(self):
-        url = os.getenv('API_URL','http://localhost:8000/retail')
+        url = os.getenv('API_URL')
         param = {
             'limit' : self.limit,
             'dt_partition' : self.dt_partition
