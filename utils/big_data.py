@@ -35,6 +35,6 @@ def push_to_s3(flat_dict:dict ,filepath:str, bucket:str):
     uploaded_file[0] = uploaded_file[0] + date
     uploaded_file = '.'.join(uploaded_file)
     # push zipped file to s3
-    bucket.upload_file(filepath,uploaded_file)
+    bucket.upload_file(zippath,uploaded_file)
     os.remove(filepath)
     os.remove(zippath)
