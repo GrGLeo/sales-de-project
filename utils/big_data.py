@@ -1,28 +1,40 @@
-import boto3
-import json
-import zipfile
 import os
 from datetime import datetime
+import json
+import zipfile
+import boto3
 
 def get_session():
+    '''
+    Get the session to AWS
+    '''
     access = os.getenv('AWS_ACCESS_ID')
     key = os.getenv('AWS_ACCESS_KEY')
     session = boto3.Session(aws_access_key_id=access, aws_secret_access_key=key)
     return session
 
 def write_json(flat_dict:dict,filepath:str) -> str:
+    '''
+    Write a json file from the flatten sale dict
+    '''
     json_data = json.dumps(flat_dict)
-    with open(filepath, 'w') as f:
+    with open(filepath, 'w', encoding='UTF-8') as f:
         f.write(json_data)
     return filepath
 
 def zipp_file(filepath:str) -> str:
+    '''
+    Zipp the data json file
+    '''
     zippath = filepath.replace('json','zip')
     with zipfile.ZipFile(zippath, 'w', zipfile.ZIP_DEFLATED) as zipf:
         zipf.write(filepath, os.path.basename(filepath))
     return zippath
 
 def push_to_s3(flat_dict:dict ,filepath:str, bucket:str) -> None:
+    '''
+    Push the zipped file to s3
+    '''
     # setup bucket connexion
     session = get_session()
     s3 = session.resource('s3')
@@ -44,6 +56,10 @@ def push_to_s3(flat_dict:dict ,filepath:str, bucket:str) -> None:
         os.remove(filepath)
 
 def push_late_data():
+    '''
+    Check if data were not pushed into a s3 bucket and saved locally
+    Push every zipped file to s3
+    '''
     # TODO save not pushed raw_data
     # pushed all raw_data to bucket
-    pass
+    return

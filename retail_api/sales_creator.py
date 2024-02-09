@@ -1,17 +1,20 @@
+from datetime import datetime
+from pathlib import Path
 import random
 import json
 import os
 import numpy as np
 from faker import Faker
-from datetime import datetime
-from pathlib import Path
 from param import items_prices
 
 
 class SaleCreator:
     def __init__(self, limit=None, dt_partition=None):
         self.limit = limit
-        self.json_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),'items_prices.json')
+        self.json_path = os.path.join(
+            os.path.dirname(os.path.realpath(__file__)),
+            'items_prices.json'
+            )
 
         if dt_partition:
             self.dt_partition = datetime.strptime(dt_partition,'%Y%m%d')
@@ -19,14 +22,18 @@ class SaleCreator:
             self.dt_partition = datetime.today()
 
         if Path(self.json_path).exists():
-            with open(self.json_path,'r') as f:
+            with open(self.json_path,'r',encoding='UTF-8') as f:
                 self.items_prices = json.load(f)
         else:
             self.items_prices = items_prices
-            with open(self.json_path,'w') as f:
+            with open(self.json_path, 'w', encoding='UTF-8') as f:
                 json.dump(self.items_prices,f)
 
     def get_sales(self):
+        '''
+        Generates fake data for a specified number of records.
+        Uses the Faker library to create synthetic data.
+        '''
         fake = Faker()
         if self.limit:
             total = self.limit
