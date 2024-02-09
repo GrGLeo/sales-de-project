@@ -3,25 +3,31 @@ import json
 from datetime import datetime
 import requests
 import pandas as pd
+import botocore.exceptions
 from utils import flat_json
-from utils.big_data import push_to_s3
+from utils.big_data import AwsInstance
 pd.options.mode.copy_on_write = True
 
 class Feeder:
+    '''
+     Class for fetching, transforming, and feeding data to Redshift.
+
+    This class initializes an instance of AwsInstance to interact with AWS services.
+    It provides methods for retrieving raw data, transforming it into suitable formats,
+    and feeding it into Redshift.
+    '''
     def __init__(self, dt_partition=None, limit=None,):
         self.item_path = os.getenv('JSON_ITEM_PATH')
         self.dt_partition = dt_partition
         self.limit = limit
+        self.instance = AwsInstance()
         self.get_days_sales()
         self.alim_user()
         self.alim_item()
         self.alim_sales()
 
     def get_days_sales(self):
-        '''
-        Make an API call to get raw data sales, transform it into a pandas DataFrame.
-        Save it to an s3 bucket
-        '''
+        'Retrieves raw sales data through an API call and transforms it into a pandas DataFrame.'
         url = os.getenv('API_URL')
         param = {
             'limit' : self.limit,
@@ -32,13 +38,18 @@ class Feeder:
         content = response.json()
         df = flat_json(content)
         # create a saved raw file on s3
-        push_to_s3(df, 'raw_data.json','')
-        print('Pushed to s3')
+        try:
+            self.instance.create_bucket()
+            print(f'...Creating bucket {self.instance.bucket_name}...')
+        except botocore.exceptions.ClientError:
+            pass
+        self.instance.push_to_s3(df, 'raw_data.json')
+        print(f'...Pushing data to {self.instance.bucket_name}...')
         self.df = pd.DataFrame(df)
 
     def alim_user(self):
         '''
-        Retrive user info from the raw data, and calculate columns
+        Extracts and processes user information from the raw data.
         '''
         self.df_user = self.df[['user_lastname','user_firstname','department','sexe','birth_date']]
         self.df_user.loc[:,'birth_date'] = pd.to_datetime(self.df_user['birth_date'])
@@ -61,9 +72,11 @@ class Feeder:
 
     def alim_item(self):
         '''
-        If table is not on redshift, push the json files
-        else, check is there is new value in raw data
-        and write the new value if needed
+        Processes item data from the raw data.
+        If the item table is not present in Redshift, this method pushes JSON files
+        containing item information. Otherwise, it checks for new values in the raw data
+        and updates the table in Redshift accordingly. This process involves data validation,
+        synchronization.
         '''
         # TODO check if table exist on AWS
         item_price_path = self.item_path
