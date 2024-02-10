@@ -4,6 +4,7 @@ from datetime import datetime
 import requests
 import pandas as pd
 import botocore.exceptions
+from sqlalchemy import create_engine
 from utils import flat_json
 from utils.big_data import AwsInstance
 pd.options.mode.copy_on_write = True
@@ -17,16 +18,15 @@ class Feeder:
     and feeding it into Redshift.
     '''
     def __init__(self, dt_partition=None, limit=None,):
-        self.item_path = os.getenv('JSON_ITEM_PATH')
         self.dt_partition = dt_partition
         self.limit = limit
         self.instance = AwsInstance()
-        self.get_days_sales()
+        self._get_days_sales()
         self.alim_user()
         self.alim_item()
         self.alim_sales()
 
-    def get_days_sales(self):
+    def _get_days_sales(self):
         'Retrieves raw sales data through an API call and transforms it into a pandas DataFrame.'
         url = os.getenv('API_URL')
         param = {
@@ -57,7 +57,6 @@ class Feeder:
             .apply(lambda x : datetime.today().year - x.year)
         self.df_user.loc[:,'user_name'] = self.df['user_firstname'] + ' ' + self.df['user_lastname']
         self.df_user.loc[:,'sexe'] = self.df['sexe'].str.upper()
-
         mapper = {
             'LB_NAME':'user_name',
             'CD_DEPARTMENT':'department',
@@ -79,7 +78,7 @@ class Feeder:
         synchronization.
         '''
         # TODO check if table exist on AWS
-        item_price_path = self.item_path
+        item_price_path = os.getenv('JSON_ITEM_PATH')
         with open(item_price_path,'r',encoding='UTF-8') as file:
             item_price_table = json.load(file)
 
@@ -89,7 +88,7 @@ class Feeder:
             'MT_ITEM':[x[0] for x in item_price_table.values()],
         }
 
-        item_price_table = pd.DataFrame(item_price_table)
+        self.df_items = pd.DataFrame(item_price_table)
 
         # TODO verify new item, write new item
 
@@ -112,7 +111,7 @@ class Feeder:
             'item_id':'NU_ITEM',
             'price_payed':'MT_HT',
             'mt_taxes':'MT_TAXES',
-            'quantity':'NB_ITEM',
+            'quantity':'NB_ITEMS',
             'mt_ttc':'MT_TTC',
             'mt_total_ht':'MT_TOTAL_HT',
             'mt_total_ttc':'MT_TOTAL_TTC',
@@ -123,19 +122,24 @@ class Feeder:
         selection = list(mapper.values())
         self.df_sales = self.df_sales[selection]
 
-    def redshift_alim(self):
+    def postgres_alim(self):
         '''
-        Feed a table to redshift
+        Feed a table to postgresql
         '''
-        return
-
+        connection_url = os.getenv('POSTGRES')
+        engine = create_engine(connection_url)
+        self.df_user.to_sql(name='users', con=engine, if_exists='append', index=False)
+        self.df_sales.to_sql(name='sales', con=engine, if_exists='append', index=False)
+        self.df_items.to_sql(name='items', con=engine, if_exists='replace', index=False)
+        
     def compute(self):
         '''
         Feed all three table to the redshit data warehouse
         '''
-        self.redshift_alim()
+        self.postgres_alim()
 
 
 if '__main__' == __name__:
     f = Feeder()
     f.compute()
+    
