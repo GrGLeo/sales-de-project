@@ -9,26 +9,31 @@ from param import items_prices
 
 
 class SaleCreator:
+    'Class to create the fake sales data, to feed the API'
     def __init__(self, limit=None, dt_partition=None):
         self.limit = limit
         self.json_path = os.path.join(
             os.path.dirname(os.path.realpath(__file__)),
             'items_prices.json'
             )
+        self.items_prices = self._get_json()
 
         if dt_partition:
             self.dt_partition = datetime.strptime(dt_partition,'%Y%m%d')
         else:
             self.dt_partition = datetime.today()
 
+    def _get_json(self):
+        'Load items from json if it exist or import from param and write a json'
         if Path(self.json_path).exists():
             with open(self.json_path,'r',encoding='UTF-8') as f:
-                self.items_prices = json.load(f)
+                items = json.load(f)
         else:
-            self.items_prices = items_prices
             with open(self.json_path, 'w', encoding='UTF-8') as f:
-                json.dump(self.items_prices,f)
-
+                json.dump(items_prices,f)
+            items = items_prices
+        return items
+    
     def get_sales(self):
         '''
         Generates fake data for a specified number of records.
