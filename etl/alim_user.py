@@ -16,7 +16,7 @@ class Feeder:
 
     This class initializes an instance of AwsInstance to interact with AWS services.
     It provides methods for retrieving raw data, transforming it into suitable formats,
-    and feeding it into Redshift.
+    and feeding it into PostgreSQL.
     '''
     def __init__(self, dt_partition=None, limit=None,):
         self.dt_partition = dt_partition
@@ -39,6 +39,7 @@ class Feeder:
         # TODO safeguard in case response != 200
         content = response.json()
         df = flat_json(content)
+        self.logger.info(df.keys())
         # create a saved raw file on s3
         try:
             self.instance.create_bucket()
@@ -131,6 +132,7 @@ class Feeder:
         '''
         connection_url = os.getenv('POSTGRES')
         engine = create_engine(connection_url)
+        self.df.to_sql(name='raw', con=engine, if_exists='append', index=False)
         self.df_user.to_sql(name='users', con=engine, if_exists='append', index=False)
         count = self.df_user.shape[0]
         self.logger.write(count, 'user')
