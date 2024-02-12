@@ -1,2 +1,2 @@
 clear
-python run.py 2> log_error.txt
+python run.py > log_error.txt

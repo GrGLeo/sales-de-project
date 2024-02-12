@@ -27,6 +27,7 @@ class AwsInstance(boto3.Session):
 
     def push_to_s3(self, flat_dict:dict ,filepath:str) -> None:
         'Push the zipped file to s3'
+        return 
         bucket = self.s3.Bucket(self.bucket_name)
         # write zipp file
         zippath = zipp_file(write_json(flat_dict, filepath))
