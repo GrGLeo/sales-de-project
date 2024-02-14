@@ -2,21 +2,30 @@ import os
 import sys
 import requests
 from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from models.tables import Raw
 from utils.logs import Logger
 from utils import flat_json
 
 class Extractor:
     def __init__(self, limit=None, dt_partition=None):
         self.logger = Logger('logger')
+        self.logger.info('Starting %s command', type(self).__name__)
         self.limit = limit
         self.dt_partition = dt_partition
         self.engine = self._get_connection()
-        pass
     
     def extract(self):
         df = self._get_day_sales()
-        return df
-        #df.to_sql(name='raw', con=self.engine, if_exists='append', index=False)
+        Session = sessionmaker(bind=self.engine)
+        session = Session()
+        for row in df:
+            raw_data = Raw(**row)
+            session.add(raw_data)
+        session.commit()
+        self.logger.info('Insert %s rows', len(df))
+        session.close()
+        
     
     def _get_day_sales(self):
         url = os.getenv('API_URL')
@@ -35,7 +44,3 @@ class Extractor:
         connection_url = os.getenv('POSTGRES')
         engine = create_engine(connection_url)
         return engine
-    
-ext = Extractor(limit=10_000)
-df = ext.extract()
-print(sys.getsizeof(df))
