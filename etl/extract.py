@@ -11,20 +11,19 @@ class Extractor:
     def __init__(self, limit=None, dt_partition=None):
         self.logger = Logger('logger')
         self.logger.info('Starting %s command', type(self).__name__)
+        self.status = 'FAILED'
         self.limit = limit
         self.dt_partition = dt_partition
-        self.engine = self._get_connection()
+        self.session = self._get_session()
     
     def extract(self):
         df = self._get_day_sales()
-        Session = sessionmaker(bind=self.engine)
-        session = Session()
         for row in df:
             raw_data = Raw(**row)
-            session.add(raw_data)
-        session.commit()
+            self.session.add(raw_data)
+        self.session.commit()
         self.logger.info('Insert %s rows', len(df))
-        session.close()
+        self.session.close()
         
     
     def _get_day_sales(self):
@@ -40,7 +39,9 @@ class Extractor:
         content = response.json()
         return flat_json(content)
 
-    def _get_connection(self):
+    def _get_session(self):
         connection_url = os.getenv('POSTGRES')
         engine = create_engine(connection_url)
-        return engine
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        return session

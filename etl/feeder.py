@@ -1,0 +1,50 @@
+import os
+import sys
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from utils.logs import Logger
+
+
+# TODO check data availability
+# TODO pull and transform data
+# TODO write data into user table
+
+class Feeder:
+    def __init__(self):
+        self.logger = Logger('logger')
+        self.session = self._get_session()
+        
+    def readiness(self):
+        pass
+    
+    def extract(self):
+        pass
+    
+    def transform(self):
+        pass
+    
+    def write(self):
+        pass
+    
+    def _step(self,func):
+        self.logger.info('Starting %s',func.__name__)
+        func()
+        self.logger.info('%s complete', func.__name__)
+        
+    def compute(self):
+        self.readiness()
+        self._step(self.extract)
+        self._step(self.transform)
+        self._step(self.write)
+        
+    @staticmethod
+    def _get_session():
+        connection_url = os.getenv('POSTGRES')
+        engine = create_engine(connection_url)
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        return session
+    
+if __name__ == '__main__':
+    fed = Feeder()
+    fed.compute()
