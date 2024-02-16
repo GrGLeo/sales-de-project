@@ -1,5 +1,6 @@
 import os
 import sys
+import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from utils.logs import Logger
@@ -13,9 +14,10 @@ class Feeder:
     def __init__(self):
         self.logger = Logger('logger')
         self.session = self._get_session()
+        self.table = None
         
     def readiness(self):
-        pass
+        return True
     
     def extract(self):
         pass
@@ -32,10 +34,12 @@ class Feeder:
         self.logger.info('%s complete', func.__name__)
         
     def compute(self):
-        self.readiness()
-        self._step(self.extract)
-        self._step(self.transform)
-        self._step(self.write)
+        self.logger.info('Starting %s table computing', self.table.__tablename__)
+        ready = self.readiness()
+        if ready:
+            self._step(self.extract)
+            self._step(self.transform)
+            self._step(self.write)
         
     @staticmethod
     def _get_session():

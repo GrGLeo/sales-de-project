@@ -59,6 +59,7 @@ class Info(Base):
     'Info table documentation'
     __tablename__ = 'info'
     ID = Column(Integer, primary_key=True)
+    STATUS = Column(String)
     TABLE = Column(String)
     ROW = Column(Integer)
 

@@ -25,11 +25,11 @@ class Logger(logging.Logger):
         )
         file_handler.setFormatter(formatter)
         console_handler.setFormatter(formatter)
-        
+
         self.addHandler(file_handler)
         self.addHandler(console_handler)
         self.engine = self._get_connection()
-       
+
     def write(self,count,name):
         Base.metadata.bind = self.engine
         Session = sessionmaker(bind=self.engine)

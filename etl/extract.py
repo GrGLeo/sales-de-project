@@ -24,7 +24,6 @@ class Extractor:
         self.session.commit()
         self.logger.info('Insert %s rows', len(df))
         self.session.close()
-        
     
     def _get_day_sales(self):
         url = os.getenv('API_URL')
