@@ -34,7 +34,7 @@ class Feeder:
         self.logger.info('%s complete', func.__name__)
         
     def compute(self):
-        self.logger.info('Starting %s table computing', self.table.__tablename__)
+        self.logger.info('Starting %s table computing', self.table.__tablename__.upper())
         ready = self.readiness()
         if ready:
             self._step(self.extract)
@@ -49,6 +49,7 @@ class Feeder:
         session = Session()
         return session
     
-if __name__ == '__main__':
-    fed = Feeder()
-    fed.compute()
+    @property
+    def __name__(self):
+        return self.table.__name__.upper()
+    

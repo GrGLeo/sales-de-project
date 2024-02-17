@@ -11,7 +11,6 @@ class FeedUser(Feeder):
     def __init__(self):
         super().__init__()
         self.dt_partition = datetime.date.today()
-        self.dt_partition = datetime.date(2024, 2, 16)
         self.session = self._get_session()
         self.table = User
         
@@ -24,10 +23,7 @@ class FeedUser(Feeder):
         return False
     
     def extract(self):
-        query = '''
-        SELECT *
-        FROM raw
-        WHERE date LIKE :dt_partition'''
+        query = '''SELECT * FROM raw WHERE date LIKE :dt_partition'''
         result = self.session.execute(text(query), {'dt_partition': f'{self.dt_partition}%'})
         self.df = pd.DataFrame(result.fetchall(), columns=result.keys())
     
