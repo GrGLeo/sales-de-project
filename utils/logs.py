@@ -1,5 +1,6 @@
 import os
 import sys
+import datetime
 import logging
 import colorlog
 from sqlalchemy import create_engine, func as F
@@ -25,20 +26,21 @@ class Logger(logging.Logger):
         )
         file_handler.setFormatter(formatter)
         console_handler.setFormatter(formatter)
-        
+
         self.addHandler(file_handler)
         self.addHandler(console_handler)
         self.engine = self._get_connection()
-       
-    def write(self,count,name):
+
+    def write(self, status, count, name):
         Base.metadata.bind = self.engine
         Session = sessionmaker(bind=self.engine)
         session = Session()
         id = session.query(F.count(Info.ID)).scalar()
-        new_record = Info(ID=id, TABLE=name.upper(),ROW=count)
+        new_record = Info(ID=id, STATUS=status, TABLE=name,ROW=count, DATE=datetime.date.today())
         session.add(new_record)
         session.commit()
         session.close()
+        self.info('Insert %s rows', count)
 
     def _get_connection(self):
         try:

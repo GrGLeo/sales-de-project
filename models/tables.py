@@ -23,7 +23,6 @@ class Raw(Base):
     taxes = Column(Integer)
     quantity = Column(Integer)
     date = Column(String)
-    
 
 class User(Base):
     'User table documentation'
@@ -33,14 +32,14 @@ class User(Base):
     CD_DEPARTMENT = Column(String)
     CD_SEXE = Column(String)
     NB_AGE = Column(Integer)
-    
+
 class Item(Base):
     'Items table documentation'
     __tablename__ = 'items'
     NU_ITEM = Column(Integer, primary_key=True)
     LB_ITEM = Column(String)
     MT_ITEM = Column(Float)
-    
+
 class Sales(Base):
     'Sales table documentation'
     __tablename__ = 'sales'
@@ -60,8 +59,9 @@ class Info(Base):
     'Info table documentation'
     __tablename__ = 'info'
     ID = Column(Integer, primary_key=True)
+    STATUS = Column(String)
     TABLE = Column(String)
     ROW = Column(Integer)
+    DATE = Column(DateTime)
     
 Base.metadata.create_all(engine)
-
