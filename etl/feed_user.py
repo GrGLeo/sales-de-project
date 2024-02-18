@@ -8,9 +8,13 @@ pd.options.mode.copy_on_write = True
 
 
 class FeedUser(Feeder):
-    def __init__(self):
+    '''Child Feeder class feeding User table on a postgres database'''
+    def __init__(self, dt_partition = None):
         super().__init__()
-        self.dt_partition = datetime.date.today()
+        if not dt_partition:
+            self.dt_partition = datetime.date.today()
+        else:
+            self.dt_partition = dt_partition
         self.session = self._get_session()
         self.table = User
         
@@ -45,9 +49,9 @@ class FeedUser(Feeder):
         selection = list(mapper.keys())
         df_user = df_user[selection]
         df_user.drop_duplicates(['LB_NAME','DT_BIRTH'],inplace=True)
-        self.df_user = df_user
+        self.df_transfom = df_user
     
     def write(self):
-        self.df_user.to_sql('user', con=self.session.bind, if_exists='append', index=False)
-        self.logger.info('Insert %s rows', self.df_user.shape[0])
+        self.df_transfom.to_sql('user', con=self.session.bind, if_exists='append', index=False)
+        self.logger.info('Insert %s rows', self.df_transorm.shape[0])
         

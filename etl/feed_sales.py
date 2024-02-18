@@ -12,8 +12,8 @@ class FeedSales(Feeder):
             self.dt_partition = datetime.date.today()
         else:
             self.dt_partition = dt_partition
-        self.table = Sales
         self.session = self._get_session()
+        self.table = Sales
     
     def readiness(self):
         distinct_dates = self.session.query(func.date(Raw.date)).distinct().all()
@@ -29,7 +29,6 @@ class FeedSales(Feeder):
         self.df = pd.DataFrame(result.fetchall(), columns=result.keys())
     
     def transform(self):
-        self.logger.info('Computing Sales table')
         df_sales = self.df[['uid4','user_lastname','user_firstname','birth_date','item_id',\
             'price_payed','taxes','quantity','date']]
         df_sales['user_name'] = self.df['user_firstname'] + ' ' + self.df['user_lastname']
@@ -54,8 +53,4 @@ class FeedSales(Feeder):
 
         df_sales.rename(mapper, axis=1, inplace=True)
         selection = list(mapper.values())
-        self.df_sales = df_sales[selection]
-    
-    def write(self):
-        self.df_sales.to_sql('sales', con=self.session.bind, if_exists='append', index=False)
-        self.logger.info('Insert %s rows', self.df_sales.shape[0])
+        self.df_transform = df_sales[selection]

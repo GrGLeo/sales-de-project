@@ -15,6 +15,7 @@ class Feeder:
         self.logger = Logger('logger')
         self.session = self._get_session()
         self.table = None
+        self.status = 'FAILED'
         
     def readiness(self):
         return True
@@ -26,7 +27,7 @@ class Feeder:
         pass
     
     def write(self):
-        pass
+        self.df_transform.to_sql(self.__name__.lower(), con=self.session.bind, if_exists='append', index=False)
     
     def _step(self,func):
         self.logger.info('Starting %s',func.__name__)
@@ -34,12 +35,15 @@ class Feeder:
         self.logger.info('%s complete', func.__name__)
         
     def compute(self):
-        self.logger.info('Starting %s table computing', self.table.__tablename__.upper())
+        self.logger.info('Starting %s table computing', self.__name__)
         ready = self.readiness()
         if ready:
             self._step(self.extract)
             self._step(self.transform)
             self._step(self.write)
+            self.status = 'SUCESS'
+        self.logger.write(self.status,self.df_transform.shape[0], self.__name__)
+        
         
     @staticmethod
     def _get_session():

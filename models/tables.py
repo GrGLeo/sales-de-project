@@ -62,5 +62,6 @@ class Info(Base):
     STATUS = Column(String)
     TABLE = Column(String)
     ROW = Column(Integer)
-
+    DATE = Column(DateTime)
+    
 Base.metadata.create_all(engine)
