@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  api:
+    image: retail_api
+    ports:
+      - "8000:8000"  # Expose API port if needed
+    networks:
+      - mynetwork  # Attach to custom Docker network
+
+  database:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: lg
+      POSTGRES_PASSWORD: glop
+      POSTGRES_DB: sales_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data  # Attach volume for data persistence
+    networks:
+      - mynetwork
+    restart: always
+
+  script:
+    image: etl:0.1
+    depends_on:
+      - api
+      - database
+    env_file:
+      - prod.env
+    networks:
+      - mynetwork  # Attach to custom Docker network
+    # Add any additional configuration for your script service
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  postgres-data: # Define named volume for PostgreSQL data persistence

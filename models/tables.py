@@ -1,8 +1,9 @@
+import os
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, Float, String, DateTime
 from sqlalchemy import create_engine
 
-CONNECTION_URL = 'postgresql://lg:glop@localhost:5432/sales_db' #change to glop if not working
+CONNECTION_URL = os.getenv('POSTGRES') #change to glop if not working
 engine = create_engine(CONNECTION_URL)
 
 Base = declarative_base()
