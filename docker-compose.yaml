@@ -4,9 +4,9 @@ services:
   api:
     image: retail_api
     ports:
-      - "8000:8000"  # Expose API port if needed
+      - "8000:8000"
     networks:
-      - mynetwork  # Attach to custom Docker network
+      - mynetwork
 
   database:
     image: postgres
@@ -17,7 +17,7 @@ services:
       POSTGRES_PASSWORD: glop
       POSTGRES_DB: sales_db
     volumes:
-      - postgres-data:/var/lib/postgresql/data  # Attach volume for data persistence
+      - postgres-data:/var/lib/postgresql/data 
     networks:
       - mynetwork
     restart: always
@@ -32,8 +32,7 @@ services:
     volumes:
       - cron-logs:/var/log/cron
     networks:
-      - mynetwork  # Attach to custom Docker network
-    # Add any additional configuration for your script service
+      - mynetwork
 
 networks:
   mynetwork:
