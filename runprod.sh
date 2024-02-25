@@ -6,4 +6,4 @@ done
 # Proceed with script actions that require the database
 echo "PostgreSQL is ready. Proceeding with script actions..."
 
-python run.py
+python run.py >> /var/log/cron.log
