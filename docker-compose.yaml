@@ -29,6 +29,8 @@ services:
       - database
     env_file:
       - prod.env
+    volumes:
+      - cron-logs:/var/log/cron
     networks:
       - mynetwork  # Attach to custom Docker network
     # Add any additional configuration for your script service
@@ -38,4 +40,5 @@ networks:
     driver: bridge
 
 volumes:
-  postgres-data: # Define named volume for PostgreSQL data persistence
+  postgres-data:
+  cron-logs:

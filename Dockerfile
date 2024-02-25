@@ -3,12 +3,14 @@ FROM python:3.10-slim
 WORKDIR /app
 COPY . /app
 
+RUN mkdir -p /var/log/cron
+
 RUN apt-get update \
     && apt-get -y install cron netcat-openbsd \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY cronjob /etc/cron.d/cronjob
+RUN echo "*/5 * * * * root /app/run.sh >> /var/log/cron/cron.log 2>&1" > /etc/cron.d/cronjob
 RUN chmod 0644 /etc/cron.d/cronjob
 
 COPY run.sh /app/run.sh
@@ -21,4 +23,5 @@ RUN touch /var/log/cron.log
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["cron", "-f"]
+CMD ./run.sh
+
